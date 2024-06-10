@@ -1,0 +1,156 @@
+	- why does all sites get so small after filtering????
+		minQ is dropping a whole bunch - using 20 instead of 30 keeps most (~85% vs 40% with Q >= 30)
+		
+
+## OK - so think depth filter is making things into missing data, but then doesn't remove sites unless a missing data filter is applied
+# this makes sense. This filtering is going to be sensitive to which individuals are included
+# if multiple individuals have low coverage, the number of individuals converted to missing data at a site can be high
+#    if missing data threshold is more than the num of individuals with mean coverage near the min depth threshold, 
+#    then a lot of sites will be removed
+
+
+# diff missing data thresholds with only depth filer, with/without min-alleles=2 (i.e., to see how many invariants in each case):
+
+
+
+## missing 20%
+		## all sites
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.8 --max-alleles 2
+			kept 664,511 out of a possible 10670043 Sites						
+		## Biallelic
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.8 --max-alleles 2 --min-alleles 2
+			kept 68,552 out of a possible 10670043 Sites
+	# % variant = 10%
+
+## missing 20% but with depth cutoff of 7 instead of 10
+	# minDP 7  !!!!! a lower depth cutoff can keep WAY more sites
+	vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 7 --max-missing 0.8 --max-alleles 2
+		kept 5,992,304 out of a possible 10670043 Sites
+	vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 7 --max-missing 0.8 --max-alleles 2 --min-alleles 2
+		kept 378,834 out of a possible 10670043 Sites
+	# % variant = 6.3%
+
+
+## missing 30%
+		## all sites
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.7 --max-alleles 2
+			kept 2,303,315 out of a possible 10670043 Sites
+		## Biallelic
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.7 --max-alleles 2 --min-alleles 2
+			kept 164,417 out of a possible 10670043 Sites
+	# % variant = 7%
+
+
+## Missing 50%
+		## all sites
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.5 --max-alleles 2
+			kept 8,115,910 out of a possible 10670043 Sites
+		## Biallelic
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.5 --max-alleles 2 --min-alleles 2
+			kept 538,135 out of a possible 10670043 Sites
+	# % variant = 6.6%
+		
+
+## Missing 70%
+		## all sites
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.3 --max-alleles 2
+			kept 9,898,284 out of a possible 10670043 Sites
+		## Biallelic
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --max-missing 0.3 --max-alleles 2 --min-alleles 2
+			kept 686,600 out of a possible 10670043 Sites
+	# % variant = 6.9%
+
+
+
+
+
+
+
+# ALL SITES kept with just depth filt - there are def sites with a depth <10 - they just get set to missing data and not removed without missing data filter
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10
+			kept 10,670,043 out of a possible 10,670,043 Sites
+		
+		# keep most with all filters except depth & quality
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --maf 0 --max-missing 0.8 --min-alleles 0 --max-alleles 2 --remove-indels
+			kept 10,158,605 out of a possible 10,670,043
+			
+		# lose most with all filters except quality
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --maf 0 --max-missing 0.8 --min-alleles 0 --max-alleles 2 --remove-indels --minDP 10
+			kept 648,911 out of a possible 10,670,043
+			
+		# lose most with all filters
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --maf 0 --max-missing 0.8 --min-alleles 0 --max-alleles 2 --remove-indels --minDP 10 --minQ 30
+			kept 173,285 out of a possible 10670043 Sites
+		
+	
+			
+# no sites removed for low depth without missing data being included			
+		# filter to max 2 alleles and remove indels with DP filter 10 - keeps almost all
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --max-alleles 2 --remove-indels --minDP 10
+			kept 10,550,691 out of a possible 10,670,043 Sites
+		# same but without the depth filter keeps the same number - depth filter not being applied
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --max-alleles 2 --remove-indels
+			kept 10,550,691 out of a possible 10670043 Sites
+	
+	
+	# filter to max 2 alleles and remove indels with DP filter 10 - add in missing data filter - drops down to almost none again
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --max-alleles 2 --remove-indels --minDP 10 --max-missing 0.8
+			kept 648911 out of a possible 10670043 Sites
+			
+## WITH MISSING FILTER, DEPTH FILTER DOES SOMETHING	
+	# allow lots of missing data keeps most sites with depth filter
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --max-alleles 2 --remove-indels --max-missing 0.2 --minDP 10
+			kept 10,285,591 out of a possible 10,670,043 Sites
+	# same filter, but no depth - THIS IS ACTUALLY DIFFERENT - depth filter removes small amount of sites
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --max-alleles 2 --remove-indels --max-missing 0.2
+			kept 10,541,698 out of a possible 10670043 Sites
+# in this case, depth filter removes 256,107 sites	
+			
+	# filter to max 2 alleles and remove indels with DP filter 10 - add in missing data filter - drops down to almost none again
+	vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --max-alleles 2 --remove-indels --max-missing 0.8 --minDP 10 
+		kept 648,911 out of a possible 10670043 Sites
+	# same but without depth filter
+	vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --max-alleles 2 --remove-indels --max-missing 0.8
+		kept 10,158,605 out of a possible 10670043 Sites
+# in this case, depth filters out 9,509,694
+	
+When there are more sites filtered out by missing data, there are WAY MORE sites filtered by depth
+	OH - unless this is caused by a couple individuals that have their sites converted to missing data by depth filter, then 	
+	
+	
+		
+		
+	# other things not tested that aren't the cause
+		
+	No filtering by depth when just depth & indel filter
+		# Most kept with depth & indel filter
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 10 --remove-indels
+			kept 10,572,476 out of a possible 10,670,043 Sites
+			
+		# just indel filter is same as depth & indel filter
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --remove-indels
+			kept 10,572,476 out of a possible 10670043 Sites
+		
+		
+			
+	# Order doesn't matter
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz  --minDP 10 --maf 0 --max-missing 0.8 --min-alleles 0 --max-alleles 2 --remove-indels
+			kept 648,911 out of a possible 10670043 Sites
+
+		
+		# take out maf filter?? - NOPE
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz  --minDP 10  --max-missing 0.8 --min-alleles 0 --max-alleles 2 --remove-indels
+			kept 648,911 out of a possible 10,670,043 Sites
+	
+	# different depth filters don't matter			
+		# Depth filter at 834 - keeps all
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 834
+			kept 10670043 out of a possible 10670043 Sites
+			
+		# Depth filter 5 - keeps all
+		vcftools --gzvcf  sort__NC_045557.1_RagTag.vcf.gz --minDP 5
+			kept 10670043 out of a possible 10670043 Sites
+
+		
+		
+		
