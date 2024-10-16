@@ -54,6 +54,24 @@
 5. `Combine_NC_vcf_get_stats_allsites.slurm` makes combined vcfs for allsites, including an unfiltered combined
 
 
+<br>
+<br>
+<br>
+
+
+## Add in fox snake as outgroup
+
+Reads are already trimmed by Jeff Weinell
+
+1. `bwa_foxsnake.slurm` maps to the ratsnake reference genome
+
+2. `flagstat_foxsnake.slurm` runs samtools flagstat to get some mapping stats
+
+3. `picard_rmd_foxsnake.slurm` runs picard mark duplicates
+
+4. `var_call_allsites_fox.slurm` calls variants, including including invariants (all sites vcf) for each scaffold separately
+
+
 
 <br>
 <br>
