@@ -71,6 +71,9 @@ Reads are already trimmed by Jeff Weinell
 
 4. `var_call_allsites_fox.slurm` calls variants, including including invariants (all sites vcf) for each scaffold separately
 
+5. `sort_fox_allsites_vcfs.slurm` sorts vcf files from step 4
+
+6. `Combine_NC_vcf_get_stats_allsites_fox.slurm` combines NC scaffolds into a single vcf
 
 
 <br>
